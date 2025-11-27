@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, LayoutDashboard, ShoppingBag, Briefcase, PlusCircle, User, Settings, HelpCircle, LogOut, LogIn, UserPlus, FileCheck } from 'lucide-react';
+import { X, LayoutDashboard, ShoppingBag, Briefcase, PlusCircle, User, Settings, HelpCircle, LogOut, LogIn, UserPlus, FileCheck, MessageSquare } from 'lucide-react';
 import { ViewState, NavItem, User as UserType } from '../types';
 
 interface NavigationProps {
@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
 ];
 
 const secondaryItems: NavItem[] = [
+  { label: 'Messages', view: ViewState.MESSAGES, icon: MessageSquare },
   { label: 'Profile', view: ViewState.PROFILE, icon: User },
   { label: 'Settings', view: ViewState.SETTINGS, icon: Settings },
   { label: 'Help & Support', view: ViewState.HELP, icon: HelpCircle },

@@ -13,7 +13,9 @@ import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import { Auth } from './components/Auth';
 import { JobApplications } from './components/JobApplications';
+import { Chat } from './components/Chat';
 import { authService } from './services/authService';
+import { chatService } from './services/chatService';
 
 // Seed Data with KSh pricing
 const initialProducts: Product[] = [
@@ -93,6 +95,7 @@ const App: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [jobs, setJobs] = useState<JobPosting[]>(initialJobs);
@@ -159,6 +162,38 @@ const App: React.FC = () => {
     ));
   };
 
+  const handleContactSeller = (product: Product) => {
+    if (!user) {
+      setCurrentView(ViewState.LOGIN);
+      return;
+    }
+
+    if (!product.seller) {
+      alert("Seller information is missing.");
+      return;
+    }
+
+    // Don't chat with yourself
+    if (product.seller.id === user.id) {
+      alert("You cannot message yourself.");
+      return;
+    }
+
+    // Convert seller info to User type for the chat service
+    const sellerUser: User = {
+       id: product.seller.id,
+       name: product.seller.name,
+       email: product.seller.email,
+       phone: product.seller.phone,
+       location: product.seller.location
+    };
+
+    // Create or retrieve conversation
+    const chatId = chatService.startConversation(user, sellerUser, product);
+    setActiveChatId(chatId);
+    setCurrentView(ViewState.MESSAGES);
+  };
+
   // Auth guard wrapper
   const requireAuth = (view: React.ReactNode) => {
     if (!user) {
@@ -204,6 +239,7 @@ const App: React.FC = () => {
               {currentView === ViewState.NEW_PRODUCT && 'New Listing'}
               {currentView === ViewState.NEW_JOB && 'Post Job'}
               {currentView === ViewState.APPLICATIONS && 'Applications'}
+              {currentView === ViewState.MESSAGES && 'Messages'}
               {currentView === ViewState.PROFILE && 'My Profile'}
               {currentView === ViewState.SETTINGS && 'Settings'}
               {currentView === ViewState.HELP && 'Help Center'}
@@ -238,7 +274,8 @@ const App: React.FC = () => {
               <ProductDetail 
                 product={selectedProduct} 
                 user={user}
-                onBack={() => setCurrentView(ViewState.PRODUCTS)} 
+                onBack={() => setCurrentView(ViewState.PRODUCTS)}
+                onContactSeller={handleContactSeller}
               />
             )}
 
@@ -261,12 +298,18 @@ const App: React.FC = () => {
               />
             )}
             
-            {/* Show "My Applications" for regular users, or "Received Applications" if we tracked ownership (mocking both here) */}
             {currentView === ViewState.APPLICATIONS && requireAuth(
               <JobApplications 
                 applications={applications} 
-                isEmployer={true} // Toggling to true here to demonstrate the feature requested
+                isEmployer={true} 
                 onStatusUpdate={handleApplicationStatusUpdate}
+              />
+            )}
+
+            {currentView === ViewState.MESSAGES && requireAuth(
+              <Chat 
+                user={user!}
+                initialChatId={activeChatId}
               />
             )}
 

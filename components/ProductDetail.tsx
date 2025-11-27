@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product, User } from '../types';
 import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
+  user: User | null;
   onBack: () => void;
+  onContactSeller?: (product: Product) => void;
 }
 
-export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
+export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onContactSeller }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   // Helper function to render text with bullet points cleanly
@@ -39,6 +41,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack })
       // Handle Regular Paragraphs
       return <p key={index} className="text-gray-600 mb-2 leading-relaxed">{trimmed}</p>;
     });
+  };
+
+  const handleContactClick = () => {
+    if (onContactSeller) {
+      onContactSeller(product);
+    }
   };
 
   return (
@@ -112,7 +120,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack })
             </div>
 
             <div className="space-y-4 mt-auto pt-6 border-t border-gray-100">
-              <button className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-gray-200 hover:shadow-xl hover:-translate-y-0.5">
+              <button 
+                onClick={handleContactClick}
+                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-gray-200 hover:shadow-xl hover:-translate-y-0.5"
+              >
                 <MessageCircle size={24} /> Contact Seller
               </button>
               <div className="grid grid-cols-2 gap-4">

@@ -13,7 +13,8 @@ export enum ViewState {
   HELP = 'HELP',
   LOGIN = 'LOGIN',
   REGISTER = 'REGISTER',
-  FORGOT_PASSWORD = 'FORGOT_PASSWORD'
+  FORGOT_PASSWORD = 'FORGOT_PASSWORD',
+  MESSAGES = 'MESSAGES'
 }
 
 export interface User {
@@ -22,6 +23,8 @@ export interface User {
   email: string;
   avatar?: string;
   bio?: string;
+  phone?: string;
+  location?: string;
 }
 
 export interface Seller {
@@ -64,6 +67,23 @@ export interface JobApplication {
   coverLetter?: string;
   status: 'Pending' | 'Reviewed' | 'Interview' | 'Rejected';
   appliedAt: number;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: number;
+}
+
+export interface Conversation {
+  id: string;
+  participants: User[]; // Array of users involved (usually 2)
+  productId?: string; // Optional context
+  productName?: string;
+  messages: Message[];
+  lastMessage?: Message;
+  updatedAt: number;
 }
 
 export interface NavItem {
