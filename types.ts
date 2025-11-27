@@ -1,0 +1,34 @@
+export enum ViewState {
+  DASHBOARD = 'DASHBOARD',
+  PRODUCTS = 'PRODUCTS',
+  JOBS = 'JOBS',
+  NEW_PRODUCT = 'NEW_PRODUCT',
+  NEW_JOB = 'NEW_JOB'
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  imageUrl: string | null;
+  category: string;
+  createdAt: number;
+}
+
+export interface JobPosting {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  salaryRange: string;
+  type: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance';
+  description: string;
+  createdAt: number;
+}
+
+export interface NavItem {
+  label: string;
+  view: ViewState;
+  icon: React.ComponentType<any>;
+}
