@@ -7,6 +7,7 @@ export enum ViewState {
   JOBS = 'JOBS',
   NEW_PRODUCT = 'NEW_PRODUCT',
   NEW_JOB = 'NEW_JOB',
+  APPLICATIONS = 'APPLICATIONS',
   PROFILE = 'PROFILE',
   SETTINGS = 'SETTINGS',
   HELP = 'HELP',
@@ -20,6 +21,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  bio?: string;
 }
 
 export interface Product {
@@ -41,6 +43,18 @@ export interface JobPosting {
   type: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance';
   description: string;
   createdAt: number;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  applicantName: string;
+  email: string;
+  coverLetter?: string;
+  status: 'Pending' | 'Reviewed' | 'Interview' | 'Rejected';
+  appliedAt: number;
 }
 
 export interface NavItem {

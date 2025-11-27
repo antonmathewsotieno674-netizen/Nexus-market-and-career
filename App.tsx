@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
-import { ViewState, Product, JobPosting, User } from './types';
+import { ViewState, Product, JobPosting, User, JobApplication } from './types';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { ProductList } from './components/ProductList';
@@ -12,6 +12,7 @@ import { Profile } from './components/Profile';
 import { Settings } from './components/Settings';
 import { Help } from './components/Help';
 import { Auth } from './components/Auth';
+import { JobApplications } from './components/JobApplications';
 import { authService } from './services/authService';
 
 // Seed Data with KSh pricing
@@ -46,6 +47,30 @@ const initialJobs: JobPosting[] = [
     type: 'Full-time',
     description: 'We are looking for a skilled React developer to join our growing team. You will be building modern web applications using the latest tech stack.',
     createdAt: Date.now() - 20000000
+  },
+  {
+    id: '2',
+    title: 'Product Designer',
+    company: 'DesignStudio',
+    location: 'Nairobi',
+    salaryRange: 'KSh 70k - 90k',
+    type: 'Full-time',
+    description: 'Join our creative team to design world-class user interfaces.',
+    createdAt: Date.now() - 5000000
+  }
+];
+
+// Seed Applications
+const initialApplications: JobApplication[] = [
+  {
+    id: '101',
+    jobId: '1',
+    jobTitle: 'Frontend Developer',
+    company: 'Creative Solutions',
+    applicantName: 'Jane Smith',
+    email: 'jane.smith@example.com',
+    status: 'Pending',
+    appliedAt: Date.now() - 86400000
   }
 ];
 
@@ -57,6 +82,7 @@ const App: React.FC = () => {
   
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [jobs, setJobs] = useState<JobPosting[]>(initialJobs);
+  const [applications, setApplications] = useState<JobApplication[]>(initialApplications);
 
   useEffect(() => {
     // Check for existing user session
@@ -90,6 +116,27 @@ const App: React.FC = () => {
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);
     setCurrentView(ViewState.PRODUCT_DETAIL);
+  };
+
+  const handleJobApply = (job: JobPosting, coverLetter: string) => {
+    if (!user) {
+      setCurrentView(ViewState.LOGIN);
+      return;
+    }
+
+    const newApplication: JobApplication = {
+      id: Date.now().toString(),
+      jobId: job.id,
+      jobTitle: job.title,
+      company: job.company,
+      applicantName: user.name,
+      email: user.email,
+      coverLetter: coverLetter,
+      status: 'Pending',
+      appliedAt: Date.now()
+    };
+    
+    setApplications(prev => [newApplication, ...prev]);
   };
 
   // Auth guard wrapper
@@ -136,6 +183,7 @@ const App: React.FC = () => {
               {currentView === ViewState.JOBS && 'Careers'}
               {currentView === ViewState.NEW_PRODUCT && 'New Listing'}
               {currentView === ViewState.NEW_JOB && 'Post Job'}
+              {currentView === ViewState.APPLICATIONS && 'Applications'}
               {currentView === ViewState.PROFILE && 'My Profile'}
               {currentView === ViewState.SETTINGS && 'Settings'}
               {currentView === ViewState.HELP && 'Help Center'}
@@ -171,7 +219,7 @@ const App: React.FC = () => {
             )}
 
             {currentView === ViewState.JOBS && (
-              <JobList jobs={jobs} />
+              <JobList jobs={jobs} onApply={handleJobApply} />
             )}
 
             {currentView === ViewState.NEW_PRODUCT && requireAuth(
@@ -186,6 +234,11 @@ const App: React.FC = () => {
                 onCancel={() => setCurrentView(ViewState.DASHBOARD)} 
                 onSubmit={handleJobSubmit}
               />
+            )}
+            
+            {/* Show "My Applications" for regular users, or "Received Applications" if we tracked ownership (mocking both here) */}
+            {currentView === ViewState.APPLICATIONS && requireAuth(
+              <JobApplications applications={applications} isEmployer={false} />
             )}
 
             {currentView === ViewState.PROFILE && requireAuth(<Profile />)}

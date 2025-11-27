@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, LayoutDashboard, ShoppingBag, Briefcase, PlusCircle, User, Settings, HelpCircle, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { X, LayoutDashboard, ShoppingBag, Briefcase, PlusCircle, User, Settings, HelpCircle, LogOut, LogIn, UserPlus, FileCheck } from 'lucide-react';
 import { ViewState, NavItem, User as UserType } from '../types';
 
 interface NavigationProps {
@@ -17,6 +17,7 @@ const navItems: NavItem[] = [
   { label: 'Sell Product', view: ViewState.NEW_PRODUCT, icon: PlusCircle },
   { label: 'Careers', view: ViewState.JOBS, icon: Briefcase },
   { label: 'Post Job', view: ViewState.NEW_JOB, icon: PlusCircle },
+  { label: 'Applications', view: ViewState.APPLICATIONS, icon: FileCheck },
 ];
 
 const secondaryItems: NavItem[] = [
