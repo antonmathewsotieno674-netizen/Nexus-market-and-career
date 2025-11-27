@@ -1,9 +1,24 @@
+import React from 'react';
+
 export enum ViewState {
   DASHBOARD = 'DASHBOARD',
   PRODUCTS = 'PRODUCTS',
   JOBS = 'JOBS',
   NEW_PRODUCT = 'NEW_PRODUCT',
-  NEW_JOB = 'NEW_JOB'
+  NEW_JOB = 'NEW_JOB',
+  PROFILE = 'PROFILE',
+  SETTINGS = 'SETTINGS',
+  HELP = 'HELP',
+  LOGIN = 'LOGIN',
+  REGISTER = 'REGISTER',
+  FORGOT_PASSWORD = 'FORGOT_PASSWORD'
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
 }
 
 export interface Product {

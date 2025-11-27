@@ -105,7 +105,7 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Price ($)</label>
+            <label className="text-sm font-medium text-gray-700">Price (KSh)</label>
             <input 
               required
               type="number"

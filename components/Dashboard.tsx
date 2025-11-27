@@ -59,7 +59,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, jobs }) => {
             </div>
           </div>
           <p className="text-gray-500 text-sm">Inventory Value</p>
-          <h3 className="text-2xl font-bold text-gray-900">${totalValue.toLocaleString()}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">KSh {totalValue.toLocaleString()}</h3>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
