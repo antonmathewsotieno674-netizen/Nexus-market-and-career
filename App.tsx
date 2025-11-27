@@ -34,6 +34,8 @@ const initialProducts: Product[] = [
       phone: '+254 700 123456',
       location: 'Nairobi, Kenya'
     },
+    rating: 4.5,
+    reviewCount: 12,
     createdAt: Date.now() - 10000000
   },
   {
@@ -50,6 +52,8 @@ const initialProducts: Product[] = [
       phone: '+254 700 123456',
       location: 'Nairobi, Kenya'
     },
+    rating: 4.8,
+    reviewCount: 45,
     createdAt: Date.now() - 5000000
   }
 ];
@@ -316,7 +320,7 @@ const App: React.FC = () => {
               />
             )}
 
-            {currentView === ViewState.PROFILE && requireAuth(<Profile />)}
+            {currentView === ViewState.PROFILE && requireAuth(<Profile user={user} />)}
             {currentView === ViewState.SETTINGS && requireAuth(<Settings />)}
             {currentView === ViewState.HELP && <Help />}
           </>

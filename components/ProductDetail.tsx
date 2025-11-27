@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
-import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X, Smartphone, CreditCard, Banknote, Globe, Loader2, CheckCircle } from 'lucide-react';
+import { wishlistService } from '../services/wishlistService';
+import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X, Smartphone, CreditCard, Banknote, Globe, Loader2, CheckCircle, Landmark } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
@@ -9,13 +10,14 @@ interface ProductDetailProps {
   onContactSeller?: (product: Product) => void;
 }
 
-type PaymentMethod = 'MPESA' | 'CARD' | 'PAYPAL' | 'CASH';
+type PaymentMethod = 'MPESA' | 'CARD' | 'PAYPAL' | 'STRIPE' | 'BANK_TRANSFER' | 'CASH';
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onContactSeller }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   
   // Checkout State
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -28,7 +30,15 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
     cardExpiry: '',
     cardCvc: '',
     paypalEmail: user?.email || '',
+    stripeEmail: user?.email || '',
+    bankRef: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setIsWishlisted(wishlistService.isInWishlist(user.id, product.id));
+    }
+  }, [user, product.id]);
 
   // Helper function to render text with bullet points cleanly
   const renderFormattedDescription = (text: string) => {
@@ -89,6 +99,21 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
       setIsCheckoutOpen(false);
       setIsPaymentSuccess(false);
       setIsProcessing(false);
+  };
+
+  const toggleWishlist = () => {
+    if (!user) {
+      alert("Please log in to save items to your wishlist.");
+      return;
+    }
+
+    if (isWishlisted) {
+      wishlistService.removeFromWishlist(user.id, product.id);
+      setIsWishlisted(false);
+    } else {
+      wishlistService.addToWishlist(user.id, product);
+      setIsWishlisted(true);
+    }
   };
 
   return (
@@ -162,38 +187,54 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                       <form onSubmit={handlePaymentSubmit} className="space-y-6">
                           <div className="space-y-3">
                               <label className="text-sm font-medium text-gray-700">Select Payment Method</label>
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="grid grid-cols-3 gap-3">
                                   <button
                                     type="button"
                                     onClick={() => setPaymentMethod('MPESA')}
-                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'MPESA' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'MPESA' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                                   >
-                                      <Smartphone size={24} />
-                                      <span className="text-xs font-bold">M-Pesa</span>
+                                      <Smartphone size={20} />
+                                      <span className="text-[10px] font-bold">M-Pesa</span>
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => setPaymentMethod('CARD')}
-                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CARD' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CARD' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                                   >
-                                      <CreditCard size={24} />
-                                      <span className="text-xs font-bold">Card</span>
+                                      <CreditCard size={20} />
+                                      <span className="text-[10px] font-bold">Card</span>
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => setPaymentMethod('PAYPAL')}
-                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'PAYPAL' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'PAYPAL' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                                   >
-                                      <Globe size={24} />
-                                      <span className="text-xs font-bold">PayPal</span>
+                                      <Globe size={20} />
+                                      <span className="text-[10px] font-bold">PayPal</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('STRIPE')}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'STRIPE' ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <CreditCard size={20} />
+                                      <span className="text-[10px] font-bold">Stripe</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('BANK_TRANSFER')}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'BANK_TRANSFER' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <Landmark size={20} />
+                                      <span className="text-[10px] font-bold text-center leading-tight">Bank Transfer</span>
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => setPaymentMethod('CASH')}
-                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CASH' ? 'border-gray-500 bg-gray-100 text-gray-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CASH' ? 'border-gray-500 bg-gray-100 text-gray-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                                   >
-                                      <Banknote size={24} />
-                                      <span className="text-xs font-bold">Cash</span>
+                                      <Banknote size={20} />
+                                      <span className="text-[10px] font-bold">Cash</span>
                                   </button>
                               </div>
                           </div>
@@ -215,8 +256,21 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                                   </div>
                               )}
 
-                              {paymentMethod === 'CARD' && (
+                              {(paymentMethod === 'CARD' || paymentMethod === 'STRIPE') && (
                                   <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                            {paymentMethod === 'STRIPE' ? 'Stripe Email' : 'Cardholder Name'}
+                                        </label>
+                                        <input 
+                                            required
+                                            type="text" 
+                                            value={paymentDetails.stripeEmail}
+                                            onChange={(e) => setPaymentDetails({...paymentDetails, stripeEmail: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                            placeholder={paymentMethod === 'STRIPE' ? "email@example.com" : "Name on card"}
+                                        />
+                                    </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700">Card Number</label>
                                         <input 
@@ -266,6 +320,33 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         placeholder="name@example.com"
                                       />
+                                  </div>
+                              )}
+                              
+                              {paymentMethod === 'BANK_TRANSFER' && (
+                                  <div className="space-y-4">
+                                      <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-sm text-emerald-800 space-y-2">
+                                          <p className="font-bold text-emerald-900">Bank Details:</p>
+                                          <div className="grid grid-cols-3 gap-2">
+                                              <span className="text-emerald-700/70">Bank:</span>
+                                              <span className="col-span-2 font-medium">Nexus National Bank</span>
+                                              <span className="text-emerald-700/70">Account:</span>
+                                              <span className="col-span-2 font-medium">1234 5678 9000</span>
+                                              <span className="text-emerald-700/70">Name:</span>
+                                              <span className="col-span-2 font-medium">Nexus Market Ltd</span>
+                                          </div>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">Transaction Reference</label>
+                                        <input 
+                                            required
+                                            type="text" 
+                                            value={paymentDetails.bankRef}
+                                            onChange={(e) => setPaymentDetails({...paymentDetails, bankRef: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                            placeholder="Enter transaction code (e.g. TXN12345)"
+                                        />
+                                    </div>
                                   </div>
                               )}
                               
@@ -361,8 +442,15 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                     {product.name}
                   </h1>
                </div>
-               <button className="p-3 rounded-full bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                 <Heart size={24} />
+               <button 
+                onClick={toggleWishlist}
+                className={`p-3 rounded-full transition-colors ${
+                  isWishlisted 
+                    ? 'bg-red-50 text-red-500' 
+                    : 'bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50'
+                }`}
+               >
+                 <Heart size={24} fill={isWishlisted ? "currentColor" : "none"} />
                </button>
             </div>
 

@@ -83,17 +83,32 @@ export const authService = {
     // Simulate popup and network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Create a mock user based on the provider
-    const mockUser: User = {
-      id: `social-${Date.now()}`,
-      name: `${provider} User`,
-      email: `user@${provider.toLowerCase()}.com`,
-      avatar: provider.charAt(0).toUpperCase(),
-      bio: `Joined via ${provider}`
-    };
+    const storedUsers = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+    // Use a consistent email to allow re-login simulation
+    const email = `user@${provider.toLowerCase()}.social`;
+    
+    // Check if user exists (Log In)
+    let user = storedUsers.find((u: any) => u.email === email);
 
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(mockUser));
-    return mockUser;
+    if (!user) {
+        // Create new user (Sign Up)
+        user = {
+          id: `social-${provider.toLowerCase()}-${Date.now()}`,
+          name: `${provider} User`,
+          email: email,
+          avatar: provider.charAt(0).toUpperCase(),
+          bio: `Joined via ${provider}`,
+          password: '', // Social accounts don't use local password
+          phone: ''
+        };
+        storedUsers.push(user);
+        localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(storedUsers));
+    }
+
+    // Persist session
+    const { password, ...userWithoutPass } = user;
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPass));
+    return userWithoutPass;
   },
 
   logout: async () => {

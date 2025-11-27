@@ -252,51 +252,53 @@ export const Auth: React.FC<AuthProps> = ({ initialView, onLoginSuccess, onChang
           </form>
 
           {/* Social Login Section */}
-          <div className="mt-8">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
+          {initialView !== ViewState.FORGOT_PASSWORD && (
+            <div className="mt-8">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-100"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              <button 
-                onClick={() => handleSocialLogin('Google')}
-                disabled={loading}
-                className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all"
-                title="Sign in with Google"
-              >
-                <Globe size={20} className="text-gray-700" />
-              </button>
-              <button 
-                onClick={() => handleSocialLogin('Facebook')}
-                disabled={loading}
-                className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all"
-                title="Sign in with Facebook"
-              >
-                <Facebook size={20} className="text-gray-700" />
-              </button>
-              <button 
-                onClick={() => handleSocialLogin('Twitter')}
-                disabled={loading}
-                className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-sky-50 hover:border-sky-200 hover:text-sky-500 transition-all"
-                title="Sign in with Twitter"
-              >
-                <Twitter size={20} className="text-gray-700" />
-              </button>
-              <button 
-                onClick={() => handleSocialLogin('Instagram')}
-                disabled={loading}
-                className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all"
-                title="Sign in with Instagram"
-              >
-                <Instagram size={20} className="text-gray-700" />
-              </button>
+              <div className="grid grid-cols-4 gap-4">
+                <button 
+                  onClick={() => handleSocialLogin('Google')}
+                  disabled={loading}
+                  className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all"
+                  title="Sign in with Google"
+                >
+                  <Globe size={20} className="text-gray-700" />
+                </button>
+                <button 
+                  onClick={() => handleSocialLogin('Facebook')}
+                  disabled={loading}
+                  className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all"
+                  title="Sign in with Facebook"
+                >
+                  <Facebook size={20} className="text-gray-700" />
+                </button>
+                <button 
+                  onClick={() => handleSocialLogin('Twitter')}
+                  disabled={loading}
+                  className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-sky-50 hover:border-sky-200 hover:text-sky-500 transition-all"
+                  title="Sign in with Twitter"
+                >
+                  <Twitter size={20} className="text-gray-700" />
+                </button>
+                <button 
+                  onClick={() => handleSocialLogin('Instagram')}
+                  disabled={loading}
+                  className="flex items-center justify-center p-3 border border-gray-200 rounded-xl hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all"
+                  title="Sign in with Instagram"
+                >
+                  <Instagram size={20} className="text-gray-700" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="p-6 bg-gray-50 border-t border-gray-100 text-center">

@@ -44,6 +44,8 @@ export interface Product {
   category: string;
   createdAt: number;
   seller?: Seller;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface JobPosting {
