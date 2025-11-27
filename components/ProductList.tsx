@@ -93,7 +93,12 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onProductSel
 
               <div className="aspect-square bg-gray-100 relative overflow-hidden shrink-0 rounded-t-2xl">
                  {product.imageUrls && product.imageUrls.length > 0 ? (
-                    <img src={product.imageUrls[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img 
+                        src={product.imageUrls[0]} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        loading="lazy"
+                    />
                  ) : (
                    <div className="w-full h-full flex items-center justify-center text-gray-300">
                       <Tag size={48} />

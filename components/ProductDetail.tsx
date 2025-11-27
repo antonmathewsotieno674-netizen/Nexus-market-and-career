@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product, User } from '../types';
-import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
@@ -11,6 +11,9 @@ interface ProductDetailProps {
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onContactSeller }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Helper function to render text with bullet points cleanly
   const renderFormattedDescription = (text: string) => {
@@ -49,8 +52,34 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setMousePos({ x, y });
+  };
+
   return (
     <div className="animate-fade-in space-y-6">
+      {/* Lightbox Overlay */}
+      {isLightboxOpen && (
+        <div 
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 animate-fade-in cursor-zoom-out"
+            onClick={() => setIsLightboxOpen(false)}
+        >
+            <button className="absolute top-6 right-6 text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full">
+                <X size={32} />
+            </button>
+            {product.imageUrls && product.imageUrls.length > 0 && (
+                <img 
+                    src={product.imageUrls[activeImageIndex]} 
+                    alt={product.name}
+                    className="max-w-full max-h-full object-contain pointer-events-none animate-scale-in"
+                />
+            )}
+        </div>
+      )}
+
       <button 
         onClick={onBack}
         className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-medium"
@@ -62,13 +91,29 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
           {/* Gallery Section */}
           <div className="p-6 md:p-8 bg-gray-50 flex flex-col gap-4">
-            <div className="aspect-square bg-white rounded-2xl overflow-hidden shadow-sm relative border border-gray-100">
+            <div 
+                className="aspect-square bg-white rounded-2xl overflow-hidden shadow-sm relative border border-gray-100 cursor-zoom-in group"
+                onMouseMove={handleMouseMove}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onClick={() => setIsLightboxOpen(true)}
+            >
                {product.imageUrls && product.imageUrls.length > 0 ? (
-                 <img 
-                   src={product.imageUrls[activeImageIndex]} 
-                   alt={product.name} 
-                   className="w-full h-full object-contain"
-                 />
+                 <>
+                    <img 
+                      src={product.imageUrls[activeImageIndex]} 
+                      alt={product.name} 
+                      className="w-full h-full object-contain transition-transform duration-100 ease-out will-change-transform"
+                      style={{
+                          transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
+                          transform: isHovered ? 'scale(2)' : 'scale(1)',
+                      }}
+                      loading="lazy"
+                    />
+                    <div className={`absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full text-gray-600 shadow-sm transition-opacity duration-300 pointer-events-none ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+                        <ZoomIn size={20} />
+                    </div>
+                 </>
                ) : (
                  <div className="w-full h-full flex items-center justify-center text-gray-300">
                    No Image Available
@@ -86,7 +131,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                       activeImageIndex === idx ? 'border-indigo-600 ring-2 ring-indigo-100' : 'border-transparent opacity-70 hover:opacity-100 bg-white'
                     }`}
                   >
-                    <img src={url} alt={`View ${idx}`} className="w-full h-full object-cover" />
+                    <img src={url} alt={`View ${idx}`} className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>
