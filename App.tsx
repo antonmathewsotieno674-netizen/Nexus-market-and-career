@@ -16,6 +16,7 @@ import { JobApplications } from './components/JobApplications';
 import { Chat } from './components/Chat';
 import { authService } from './services/authService';
 import { chatService } from './services/chatService';
+import { themeService } from './services/themeService';
 
 // Seed Data with KSh pricing
 const initialProducts: Product[] = [
@@ -107,6 +108,8 @@ const App: React.FC = () => {
     if (currentUser) {
       setUser(currentUser);
     }
+    // Initialize Theme
+    themeService.initTheme();
   }, []);
 
   const handleProductSubmit = (product: Product) => {
@@ -205,7 +208,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
       {/* Hidden Navigation Component */}
       <Navigation 
         isOpen={isNavOpen} 
@@ -217,11 +220,11 @@ const App: React.FC = () => {
       />
 
       {/* Main Header / Trigger */}
-      <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md z-30 border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+      <header className="fixed top-0 left-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-30 border-b border-gray-100 dark:border-gray-800 px-6 py-4 flex items-center justify-between transition-colors duration-200">
          <div className="flex items-center gap-4">
            <button 
              onClick={() => setIsNavOpen(true)}
-             className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-200"
+             className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-200"
              aria-label="Open Navigation"
            >
              <Menu size={24} />
@@ -231,7 +234,7 @@ const App: React.FC = () => {
            </h1>
          </div>
          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-block text-sm text-gray-500 font-medium">
+            <span className="hidden sm:inline-block text-sm text-gray-500 dark:text-gray-400 font-medium">
               {currentView === ViewState.DASHBOARD && 'Dashboard'}
               {currentView === ViewState.PRODUCTS && 'Marketplace'}
               {currentView === ViewState.PRODUCT_DETAIL && 'Product Details'}
@@ -249,7 +252,7 @@ const App: React.FC = () => {
             </span>
             <button 
               onClick={() => user ? setCurrentView(ViewState.PROFILE) : setCurrentView(ViewState.LOGIN)} 
-              className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-xs font-bold text-indigo-700 overflow-hidden"
+              className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-xs font-bold text-indigo-700 dark:text-indigo-400 overflow-hidden"
             >
                {user?.avatar || 'U'}
             </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product, User } from '../types';
-import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X, Smartphone, CreditCard, Banknote, Globe, Loader2, CheckCircle } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
@@ -9,11 +9,26 @@ interface ProductDetailProps {
   onContactSeller?: (product: Product) => void;
 }
 
+type PaymentMethod = 'MPESA' | 'CARD' | 'PAYPAL' | 'CASH';
+
 export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onContactSeller }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
+  // Checkout State
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('MPESA');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState({
+    phone: user?.phone || '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvc: '',
+    paypalEmail: user?.email || '',
+  });
 
   // Helper function to render text with bullet points cleanly
   const renderFormattedDescription = (text: string) => {
@@ -59,6 +74,23 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
     setMousePos({ x, y });
   };
 
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    
+    // Simulate payment processing
+    setTimeout(() => {
+        setIsProcessing(false);
+        setIsPaymentSuccess(true);
+    }, 2000);
+  };
+
+  const closeCheckout = () => {
+      setIsCheckoutOpen(false);
+      setIsPaymentSuccess(false);
+      setIsProcessing(false);
+  };
+
   return (
     <div className="animate-fade-in space-y-6">
       {/* Lightbox Overlay */}
@@ -77,6 +109,186 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                     className="max-w-full max-h-full object-contain pointer-events-none animate-scale-in"
                 />
             )}
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                  <div>
+                      <h2 className="text-xl font-bold text-gray-900">Checkout</h2>
+                      <p className="text-sm text-gray-500">Complete your purchase</p>
+                  </div>
+                  <button 
+                    onClick={closeCheckout}
+                    className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+              </div>
+
+              {isPaymentSuccess ? (
+                  <div className="p-10 flex flex-col items-center justify-center text-center space-y-4">
+                      <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2 animate-scale-in">
+                          <CheckCircle size={40} strokeWidth={3} />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900">Payment Successful!</h3>
+                      <p className="text-gray-500">
+                          Your order for <span className="font-semibold text-gray-900">{product.name}</span> has been placed.
+                      </p>
+                      <button 
+                        onClick={closeCheckout}
+                        className="mt-6 px-8 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                      >
+                          Continue Shopping
+                      </button>
+                  </div>
+              ) : (
+                  <div className="flex-1 overflow-y-auto p-6">
+                      {/* Order Summary */}
+                      <div className="flex gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                          <div className="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                             <img src={product.imageUrls[0]} alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                              <h4 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h4>
+                              <p className="text-indigo-600 font-bold">KSh {product.price.toLocaleString()}</p>
+                          </div>
+                      </div>
+
+                      <form onSubmit={handlePaymentSubmit} className="space-y-6">
+                          <div className="space-y-3">
+                              <label className="text-sm font-medium text-gray-700">Select Payment Method</label>
+                              <div className="grid grid-cols-2 gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('MPESA')}
+                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'MPESA' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <Smartphone size={24} />
+                                      <span className="text-xs font-bold">M-Pesa</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('CARD')}
+                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CARD' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <CreditCard size={24} />
+                                      <span className="text-xs font-bold">Card</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('PAYPAL')}
+                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'PAYPAL' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <Globe size={24} />
+                                      <span className="text-xs font-bold">PayPal</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('CASH')}
+                                    className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${paymentMethod === 'CASH' ? 'border-gray-500 bg-gray-100 text-gray-700' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                                  >
+                                      <Banknote size={24} />
+                                      <span className="text-xs font-bold">Cash</span>
+                                  </button>
+                              </div>
+                          </div>
+
+                          {/* Dynamic Fields */}
+                          <div className="space-y-4 animate-fade-in">
+                              {paymentMethod === 'MPESA' && (
+                                  <div className="space-y-2">
+                                      <label className="text-sm font-medium text-gray-700">M-Pesa Phone Number</label>
+                                      <input 
+                                        required
+                                        type="tel" 
+                                        value={paymentDetails.phone}
+                                        onChange={(e) => setPaymentDetails({...paymentDetails, phone: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                                        placeholder="07XX XXX XXX"
+                                      />
+                                      <p className="text-xs text-gray-500">You will receive an STK push on your phone.</p>
+                                  </div>
+                              )}
+
+                              {paymentMethod === 'CARD' && (
+                                  <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">Card Number</label>
+                                        <input 
+                                            required
+                                            type="text" 
+                                            value={paymentDetails.cardNumber}
+                                            onChange={(e) => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                            placeholder="0000 0000 0000 0000"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Expiry</label>
+                                            <input 
+                                                required
+                                                type="text" 
+                                                value={paymentDetails.cardExpiry}
+                                                onChange={(e) => setPaymentDetails({...paymentDetails, cardExpiry: e.target.value})}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                placeholder="MM/YY"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">CVC</label>
+                                            <input 
+                                                required
+                                                type="text" 
+                                                value={paymentDetails.cardCvc}
+                                                onChange={(e) => setPaymentDetails({...paymentDetails, cardCvc: e.target.value})}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                placeholder="123"
+                                            />
+                                        </div>
+                                    </div>
+                                  </>
+                              )}
+
+                              {paymentMethod === 'PAYPAL' && (
+                                  <div className="space-y-2">
+                                      <label className="text-sm font-medium text-gray-700">PayPal Email</label>
+                                      <input 
+                                        required
+                                        type="email" 
+                                        value={paymentDetails.paypalEmail}
+                                        onChange={(e) => setPaymentDetails({...paymentDetails, paypalEmail: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        placeholder="name@example.com"
+                                      />
+                                  </div>
+                              )}
+                              
+                              {paymentMethod === 'CASH' && (
+                                  <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600">
+                                      <p>Pay with cash upon delivery. Please ensure you have the exact amount of <strong>KSh {product.price.toLocaleString()}</strong>.</p>
+                                  </div>
+                              )}
+                          </div>
+
+                          <div className="pt-4 border-t border-gray-100">
+                              <button 
+                                type="submit"
+                                disabled={isProcessing}
+                                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-gray-200 disabled:opacity-70"
+                              >
+                                {isProcessing ? <Loader2 size={24} className="animate-spin" /> : 'Pay Now'}
+                              </button>
+                          </div>
+                      </form>
+                  </div>
+              )}
+           </div>
         </div>
       )}
 
@@ -172,7 +384,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                 <MessageCircle size={24} /> Contact Seller
               </button>
               <div className="grid grid-cols-2 gap-4">
-                  <button className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5">
+                  <button 
+                    onClick={() => setIsCheckoutOpen(true)}
+                    className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5"
+                  >
                     <ShoppingCart size={22} /> Buy Now
                   </button>
                   <button className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">

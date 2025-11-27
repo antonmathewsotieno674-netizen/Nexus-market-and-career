@@ -13,27 +13,32 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const authService = {
-  login: async (email: string, password: string): Promise<User> => {
+  login: async (identifier: string, password: string): Promise<User> => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Demo Account fallback
-    if (email === 'demo@example.com' && password === 'password') {
-      const user: User = {
-        id: '1',
-        name: 'John Doe',
-        email: 'demo@example.com',
-        avatar: 'JD'
-      };
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-      return user;
-    }
 
     const hashedPassword = await hashPassword(password);
     
     // Check registered users in local storage
     const storedUsers = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
-    const foundUser = storedUsers.find((u: any) => u.email === email && u.password === hashedPassword);
+    
+    // Find user by email OR phone
+    const foundUser = storedUsers.find((u: any) => 
+      (u.email === identifier || u.phone === identifier) && u.password === hashedPassword
+    );
+
+    // Demo Account fallback
+    if (!foundUser && (identifier === 'demo@example.com' || identifier === '0700000000') && password === 'password') {
+      const user: User = {
+        id: '1',
+        name: 'John Doe',
+        email: 'demo@example.com',
+        phone: '0700000000',
+        avatar: 'JD'
+      };
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+      return user;
+    }
 
     if (foundUser) {
       const { password, ...userWithoutPass } = foundUser;
@@ -41,16 +46,17 @@ export const authService = {
       return userWithoutPass;
     }
 
-    throw new Error('Invalid email or password');
+    throw new Error('Invalid credentials');
   },
 
-  register: async (name: string, email: string, password: string): Promise<User> => {
+  register: async (name: string, identifier: string, password: string, method: 'email' | 'phone'): Promise<User> => {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const storedUsers = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
     
-    if (storedUsers.some((u: any) => u.email === email)) {
-      throw new Error('User already exists');
+    // Check duplication
+    if (storedUsers.some((u: any) => u[method] === identifier)) {
+      throw new Error(`User with this ${method} already exists`);
     }
 
     const hashedPassword = await hashPassword(password);
@@ -58,7 +64,9 @@ export const authService = {
     const newUser = { 
       id: Date.now().toString(), 
       name, 
-      email, 
+      [method]: identifier, // dynamic key: email or phone
+      email: method === 'email' ? identifier : '', // ensure fields exist
+      phone: method === 'phone' ? identifier : '',
       password: hashedPassword, 
       avatar: name.substring(0, 2).toUpperCase() 
     };
@@ -71,6 +79,23 @@ export const authService = {
     return userWithoutPass;
   },
 
+  loginWithProvider: async (provider: string): Promise<User> => {
+    // Simulate popup and network delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Create a mock user based on the provider
+    const mockUser: User = {
+      id: `social-${Date.now()}`,
+      name: `${provider} User`,
+      email: `user@${provider.toLowerCase()}.com`,
+      avatar: provider.charAt(0).toUpperCase(),
+      bio: `Joined via ${provider}`
+    };
+
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(mockUser));
+    return mockUser;
+  },
+
   logout: async () => {
     localStorage.removeItem(CURRENT_USER_KEY);
   },
@@ -80,10 +105,9 @@ export const authService = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  resetPassword: async (email: string): Promise<void> => {
+  resetPassword: async (identifier: string): Promise<void> => {
     await new Promise(resolve => setTimeout(resolve, 1500));
-    // In a real app, this would trigger an API call to send an email
-    // For privacy security, we typically don't reveal if the email exists or not in the UI error
+    // In a real app, this would trigger an API call
     return;
   }
 };
