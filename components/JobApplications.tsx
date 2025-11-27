@@ -1,20 +1,27 @@
 import React from 'react';
 import { JobApplication } from '../types';
-import { Briefcase, CheckCircle, XCircle, Clock, User, Building2 } from 'lucide-react';
+import { Briefcase, CheckCircle, XCircle, Clock, User, Building2, ChevronDown } from 'lucide-react';
 
 interface JobApplicationsProps {
   applications: JobApplication[];
   isEmployer?: boolean; // Toggle between "My Applications" and "Received Applications" view
+  onStatusUpdate?: (id: string, newStatus: JobApplication['status']) => void;
 }
 
-export const JobApplications: React.FC<JobApplicationsProps> = ({ applications, isEmployer = false }) => {
+export const JobApplications: React.FC<JobApplicationsProps> = ({ applications, isEmployer = false, onStatusUpdate }) => {
   
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Reviewed': return 'bg-blue-50 text-blue-700';
-      case 'Interview': return 'bg-purple-50 text-purple-700';
-      case 'Rejected': return 'bg-red-50 text-red-700';
-      default: return 'bg-yellow-50 text-yellow-700';
+      case 'Reviewed': return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'Interview': return 'bg-purple-50 text-purple-700 border-purple-100';
+      case 'Rejected': return 'bg-red-50 text-red-700 border-red-100';
+      default: return 'bg-yellow-50 text-yellow-700 border-yellow-100';
+    }
+  };
+
+  const handleStatusChange = (id: string, e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (onStatusUpdate) {
+      onStatusUpdate(id, e.target.value as JobApplication['status']);
     }
   };
 
@@ -60,8 +67,10 @@ export const JobApplications: React.FC<JobApplicationsProps> = ({ applications, 
                     {isEmployer ? 'Candidate' : 'Role / Company'}
                   </th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Applied Date</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Status</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                    {isEmployer ? 'Update Status' : 'Actions'}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -98,19 +107,26 @@ export const JobApplications: React.FC<JobApplicationsProps> = ({ applications, 
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
                         {app.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       {isEmployer ? (
-                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Approve / Interview">
-                              <CheckCircle size={18} />
-                            </button>
-                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Reject">
-                              <XCircle size={18} />
-                            </button>
+                         <div className="flex items-center justify-end gap-2">
+                            <div className="relative group">
+                              <select 
+                                value={app.status}
+                                onChange={(e) => handleStatusChange(app.id, e)}
+                                className="appearance-none pl-3 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer transition-colors"
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Reviewed">Reviewed</option>
+                                <option value="Interview">Interview</option>
+                                <option value="Rejected">Rejected</option>
+                              </select>
+                              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            </div>
                          </div>
                       ) : (
                         <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">

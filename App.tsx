@@ -24,6 +24,13 @@ const initialProducts: Product[] = [
     category: 'Home & Garden',
     description: 'A sleek, modern desk lamp with adjustable brightness and warm led light. Perfect for late night study sessions.',
     imageUrls: ['https://picsum.photos/400/400?random=1', 'https://picsum.photos/400/400?random=101'],
+    seller: {
+      id: '2',
+      name: 'Jane Seller',
+      email: 'jane@example.com',
+      phone: '+254 700 123456',
+      location: 'Nairobi, Kenya'
+    },
     createdAt: Date.now() - 10000000
   },
   {
@@ -33,6 +40,13 @@ const initialProducts: Product[] = [
     category: 'Electronics',
     description: 'Immerse yourself in music with these high-fidelity wireless headphones featuring active noise cancellation.',
     imageUrls: ['https://picsum.photos/400/400?random=2', 'https://picsum.photos/400/400?random=102', 'https://picsum.photos/400/400?random=202'],
+    seller: {
+      id: '2',
+      name: 'Jane Seller',
+      email: 'jane@example.com',
+      phone: '+254 700 123456',
+      location: 'Nairobi, Kenya'
+    },
     createdAt: Date.now() - 5000000
   }
 ];
@@ -139,6 +153,12 @@ const App: React.FC = () => {
     setApplications(prev => [newApplication, ...prev]);
   };
 
+  const handleApplicationStatusUpdate = (id: string, newStatus: JobApplication['status']) => {
+    setApplications(prev => prev.map(app => 
+      app.id === id ? { ...app, status: newStatus } : app
+    ));
+  };
+
   // Auth guard wrapper
   const requireAuth = (view: React.ReactNode) => {
     if (!user) {
@@ -215,7 +235,11 @@ const App: React.FC = () => {
             )}
 
             {currentView === ViewState.PRODUCT_DETAIL && selectedProduct && (
-              <ProductDetail product={selectedProduct} onBack={() => setCurrentView(ViewState.PRODUCTS)} />
+              <ProductDetail 
+                product={selectedProduct} 
+                user={user}
+                onBack={() => setCurrentView(ViewState.PRODUCTS)} 
+              />
             )}
 
             {currentView === ViewState.JOBS && (
@@ -226,6 +250,7 @@ const App: React.FC = () => {
               <CreateProduct 
                 onCancel={() => setCurrentView(ViewState.DASHBOARD)} 
                 onSubmit={handleProductSubmit}
+                user={user!}
               />
             )}
 
@@ -238,7 +263,11 @@ const App: React.FC = () => {
             
             {/* Show "My Applications" for regular users, or "Received Applications" if we tracked ownership (mocking both here) */}
             {currentView === ViewState.APPLICATIONS && requireAuth(
-              <JobApplications applications={applications} isEmployer={false} />
+              <JobApplications 
+                applications={applications} 
+                isEmployer={true} // Toggling to true here to demonstrate the feature requested
+                onStatusUpdate={handleApplicationStatusUpdate}
+              />
             )}
 
             {currentView === ViewState.PROFILE && requireAuth(<Profile />)}

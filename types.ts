@@ -24,6 +24,14 @@ export interface User {
   bio?: string;
 }
 
+export interface Seller {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  location?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -32,6 +40,7 @@ export interface Product {
   imageUrls: string[];
   category: string;
   createdAt: number;
+  seller?: Seller;
 }
 
 export interface JobPosting {

@@ -16,7 +16,17 @@ export const generateProductDescription = async (productName: string, category: 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `Write a compelling, professional, and sales-oriented product description for a "${productName}" in the category "${category}". Keep it under 100 words. Highlights its benefits.`,
+      contents: `Write a compelling sales description (approx 40-50 words) for a "${productName}" in the category "${category}". 
+      
+      After the paragraph, add a section title "Key Features:" followed by 3-4 bullet points highlighting specific benefits or specs. 
+      
+      Format guide:
+      [Engaging Paragraph]
+      
+      Key Features:
+      - [Feature 1]
+      - [Feature 2]
+      - [Feature 3]`,
     });
     return response.text || "Could not generate description.";
   } catch (error) {

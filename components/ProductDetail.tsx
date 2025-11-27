@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
-import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
@@ -9,6 +9,37 @@ interface ProductDetailProps {
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Helper function to render text with bullet points cleanly
+  const renderFormattedDescription = (text: string) => {
+    return text.split('\n').map((line, index) => {
+      const trimmed = line.trim();
+      
+      // Handle Headers
+      if (trimmed.toLowerCase().startsWith('key features:') || trimmed.toLowerCase().startsWith('features:')) {
+         return <h3 key={index} className="font-bold text-gray-900 mt-6 mb-3 text-sm uppercase tracking-wide">{trimmed}</h3>;
+      }
+      
+      // Handle Bullet Points
+      if (trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•')) {
+         const content = trimmed.substring(1).trim();
+         return (
+           <div key={index} className="flex items-start gap-3 mb-2.5">
+             <div className="mt-1 text-indigo-600 shrink-0 bg-indigo-50 rounded-full p-0.5">
+               <Check size={12} strokeWidth={3} />
+             </div>
+             <span className="text-gray-700 text-sm leading-relaxed">{content}</span>
+           </div>
+         );
+      }
+      
+      // Handle Empty Lines
+      if (trimmed.length === 0) return <div key={index} className="h-2" />;
+      
+      // Handle Regular Paragraphs
+      return <p key={index} className="text-gray-600 mb-2 leading-relaxed">{trimmed}</p>;
+    });
+  };
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -75,8 +106,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack })
                {product.price.toLocaleString()}
             </div>
 
-            <div className="prose prose-sm text-gray-600 leading-relaxed mb-8 flex-1">
-               <p>{product.description}</p>
+            {/* Custom Description Rendering */}
+            <div className="mb-8 flex-1">
+               {renderFormattedDescription(product.description)}
             </div>
 
             <div className="space-y-4 mt-auto pt-6 border-t border-gray-100">
@@ -92,6 +124,29 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack })
                   </button>
               </div>
             </div>
+            
+            {product.seller && (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-3">Sold By</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center font-bold text-gray-600">
+                            {product.seller.name.charAt(0)}
+                        </div>
+                        <div>
+                            <p className="font-medium text-gray-900 text-sm">{product.seller.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span>{product.seller.location || 'Location not specified'}</span>
+                                {product.seller.phone && (
+                                    <>
+                                        <span>•</span>
+                                        <span>{product.seller.phone}</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
           </div>
         </div>
       </div>

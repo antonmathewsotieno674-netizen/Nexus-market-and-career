@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product, User } from '../types';
 import { generateProductDescription } from '../services/geminiService';
 import { Sparkles, Image as ImageIcon, Loader2, X, Plus } from 'lucide-react';
 
 interface CreateProductProps {
   onCancel: () => void;
   onSubmit: (product: Product) => void;
+  user: User;
 }
 
-export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit }) => {
+export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit, user }) => {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [formData, setFormData] = useState({
@@ -74,7 +75,14 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
         category: formData.category,
         description: formData.description,
         imageUrls: formData.imageUrls,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        seller: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          location: user.location || ''
+        }
       };
       onSubmit(newProduct);
       setLoading(false);
@@ -187,9 +195,9 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            rows={5}
-            className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none resize-none"
-            placeholder="Describe your product..."
+            rows={10} 
+            className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none resize-none font-sans"
+            placeholder="Describe your product... (Use AI to generate features!)"
           />
         </div>
 
