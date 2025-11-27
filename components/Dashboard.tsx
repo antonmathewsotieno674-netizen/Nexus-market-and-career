@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Product, JobPosting } from '../types';
-import { TrendingUp, Users, DollarSign, Package, Briefcase } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Package, Briefcase, ArrowRight, Star } from 'lucide-react';
 
 interface DashboardProps {
   products: Product[];
@@ -70,6 +70,61 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, jobs }) => {
           </div>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Total Views</p>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">24.5k</h3>
+        </div>
+      </div>
+
+      {/* Featured Products Section */}
+      <div className="animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Featured Products</h3>
+          <button className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 group transition-colors">
+            View All <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+        
+        <div className="flex gap-5 overflow-x-auto pb-6 -mx-6 px-6 scrollbar-hide snap-x md:snap-none">
+          {products.slice(0, 4).map((product) => (
+            <div 
+              key={product.id} 
+              className="min-w-[280px] md:min-w-[300px] bg-white dark:bg-gray-900 rounded-2xl p-3 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 group cursor-pointer snap-center relative"
+            >
+              <div className="aspect-[4/3] rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3 relative">
+                 {product.imageUrls?.[0] ? (
+                   <img 
+                      src={product.imageUrls[0]} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                   />
+                 ) : (
+                   <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+                      <Package size={32} />
+                   </div>
+                 )}
+                 {product.rating && (
+                   <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 text-gray-900 dark:text-white">
+                     {product.rating} <Star size={10} className="fill-amber-400 text-amber-400" />
+                   </div>
+                 )}
+                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+              </div>
+              
+              <div className="px-1 space-y-1.5">
+                <h4 className="font-bold text-gray-900 dark:text-white truncate text-lg" title={product.name}>{product.name}</h4>
+                <div className="flex items-center justify-between">
+                   <span className="text-indigo-600 dark:text-indigo-400 font-bold">KSh {product.price.toLocaleString()}</span>
+                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full capitalize">
+                      {product.category}
+                   </span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {products.length === 0 && (
+             <div className="w-full py-12 text-center text-gray-400 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+                <Package size={32} className="mx-auto mb-2 opacity-50" />
+                <p>No featured products available</p>
+             </div>
+          )}
         </div>
       </div>
 

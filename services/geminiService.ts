@@ -1,7 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
 const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
+  // Directly access the API key as per guidelines.
+  // In environments where process is undefined, this might need handling by the bundler/runtime.
+  // We use a safe check pattern that is compatible with most bundlers replacing 'process.env.API_KEY'.
+  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : undefined;
+  
   if (!apiKey) {
     console.error("API_KEY is missing from environment variables.");
     return null;
