@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
-import { Tag, Clock, Search, SlidersHorizontal, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Tag, Clock, Search, SlidersHorizontal, MoreHorizontal, Edit, Trash2, Layers } from 'lucide-react';
 
 interface ProductListProps {
   products: Product[];
+  onProductSelect?: (product: Product) => void;
 }
 
-export const ProductList: React.FC<ProductListProps> = ({ products }) => {
+export const ProductList: React.FC<ProductListProps> = ({ products, onProductSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -63,7 +64,11 @@ export const ProductList: React.FC<ProductListProps> = ({ products }) => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible hover:shadow-lg transition-all duration-300 group flex flex-col h-full relative">
+            <div 
+              key={product.id} 
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible hover:shadow-lg transition-all duration-300 group flex flex-col h-full relative cursor-pointer"
+              onClick={() => onProductSelect && onProductSelect(product)}
+            >
               
               {/* Product Settings / Menu */}
               <div className="absolute top-3 right-3 z-20">
@@ -87,13 +92,21 @@ export const ProductList: React.FC<ProductListProps> = ({ products }) => {
               </div>
 
               <div className="aspect-square bg-gray-100 relative overflow-hidden shrink-0 rounded-t-2xl">
-                 {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 {product.imageUrls && product.imageUrls.length > 0 ? (
+                    <img src={product.imageUrls[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                  ) : (
                    <div className="w-full h-full flex items-center justify-center text-gray-300">
                       <Tag size={48} />
                    </div>
                  )}
+                 
+                 {product.imageUrls && product.imageUrls.length > 1 && (
+                    <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1">
+                        <Layers size={12} />
+                        {product.imageUrls.length}
+                    </div>
+                 )}
+
                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-gray-900 shadow-sm z-10">
                    KSh {product.price.toLocaleString()}
                  </div>
@@ -112,7 +125,13 @@ export const ProductList: React.FC<ProductListProps> = ({ products }) => {
                 <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed mb-4 flex-1">
                   {product.description}
                 </p>
-                <button className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-indigo-600 transition-colors mt-auto">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if(onProductSelect) onProductSelect(product);
+                  }}
+                  className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-indigo-600 transition-colors mt-auto"
+                >
                   View Details
                 </button>
               </div>

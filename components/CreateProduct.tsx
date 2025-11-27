@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ViewState, Product } from '../types';
+import { Product } from '../types';
 import { generateProductDescription } from '../services/geminiService';
-import { Sparkles, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Loader2, X, Plus } from 'lucide-react';
 
 interface CreateProductProps {
   onCancel: () => void;
@@ -16,8 +16,7 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
     price: '',
     category: '',
     description: '',
-    image: null as File | null,
-    imageUrl: '' 
+    imageUrls: [] as string[]
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -26,14 +25,29 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: file, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+             setFormData(prev => ({
+               ...prev,
+               imageUrls: [...prev.imageUrls, reader.result as string]
+             }));
+          }
+        };
+        reader.readAsDataURL(file as Blob);
+      });
     }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, i) => i !== index)
+    }));
   };
 
   const handleAIGenerate = async () => {
@@ -59,7 +73,7 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
         price: parseFloat(formData.price),
         category: formData.category,
         description: formData.description,
-        imageUrl: formData.imageUrl || null,
+        imageUrls: formData.imageUrls,
         createdAt: Date.now()
       };
       onSubmit(newProduct);
@@ -77,18 +91,35 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
         
         {/* Image Upload */}
-        <div className="flex justify-center mb-6">
-            <div className="relative w-full h-64 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden hover:bg-gray-100 transition-colors group">
-                {formData.imageUrl ? (
-                    <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                    <div className="text-center p-4">
-                        <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2 group-hover:text-indigo-500 transition-colors" />
-                        <p className="text-sm text-gray-500 font-medium">Click to upload product image</p>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+        <div className="space-y-4">
+            <label className="text-sm font-medium text-gray-700">Product Images</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {formData.imageUrls.map((url, index) => (
+                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                        <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                        <button 
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <X size={14} />
+                        </button>
                     </div>
-                )}
-                <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                ))}
+                
+                <div className="relative aspect-square bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer group">
+                    <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple
+                        onChange={handleImageChange} 
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className="text-gray-400 group-hover:text-indigo-500 transition-colors">
+                        <Plus size={24} className="mx-auto" />
+                        <span className="text-xs font-medium mt-1 block">Add Images</span>
+                    </div>
+                </div>
             </div>
         </div>
 

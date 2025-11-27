@@ -4,6 +4,7 @@ import { ViewState, Product, JobPosting, User } from './types';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { ProductList } from './components/ProductList';
+import { ProductDetail } from './components/ProductDetail';
 import { JobList } from './components/JobList';
 import { CreateProduct } from './components/CreateProduct';
 import { CreateJob } from './components/CreateJob';
@@ -21,7 +22,7 @@ const initialProducts: Product[] = [
     price: 4500,
     category: 'Home & Garden',
     description: 'A sleek, modern desk lamp with adjustable brightness and warm led light. Perfect for late night study sessions.',
-    imageUrl: 'https://picsum.photos/400/400?random=1',
+    imageUrls: ['https://picsum.photos/400/400?random=1', 'https://picsum.photos/400/400?random=101'],
     createdAt: Date.now() - 10000000
   },
   {
@@ -30,7 +31,7 @@ const initialProducts: Product[] = [
     price: 15999,
     category: 'Electronics',
     description: 'Immerse yourself in music with these high-fidelity wireless headphones featuring active noise cancellation.',
-    imageUrl: 'https://picsum.photos/400/400?random=2',
+    imageUrls: ['https://picsum.photos/400/400?random=2', 'https://picsum.photos/400/400?random=102', 'https://picsum.photos/400/400?random=202'],
     createdAt: Date.now() - 5000000
   }
 ];
@@ -52,6 +53,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [jobs, setJobs] = useState<JobPosting[]>(initialJobs);
@@ -83,6 +85,11 @@ const App: React.FC = () => {
     authService.logout();
     setUser(null);
     setCurrentView(ViewState.LOGIN);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    setCurrentView(ViewState.PRODUCT_DETAIL);
   };
 
   // Auth guard wrapper
@@ -125,6 +132,7 @@ const App: React.FC = () => {
             <span className="hidden sm:inline-block text-sm text-gray-500 font-medium">
               {currentView === ViewState.DASHBOARD && 'Dashboard'}
               {currentView === ViewState.PRODUCTS && 'Marketplace'}
+              {currentView === ViewState.PRODUCT_DETAIL && 'Product Details'}
               {currentView === ViewState.JOBS && 'Careers'}
               {currentView === ViewState.NEW_PRODUCT && 'New Listing'}
               {currentView === ViewState.NEW_JOB && 'Post Job'}
@@ -155,7 +163,11 @@ const App: React.FC = () => {
             )}
             
             {currentView === ViewState.PRODUCTS && (
-              <ProductList products={products} />
+              <ProductList products={products} onProductSelect={handleProductSelect} />
+            )}
+
+            {currentView === ViewState.PRODUCT_DETAIL && selectedProduct && (
+              <ProductDetail product={selectedProduct} onBack={() => setCurrentView(ViewState.PRODUCTS)} />
             )}
 
             {currentView === ViewState.JOBS && (

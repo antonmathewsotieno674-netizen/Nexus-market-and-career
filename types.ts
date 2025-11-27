@@ -3,6 +3,7 @@ import React from 'react';
 export enum ViewState {
   DASHBOARD = 'DASHBOARD',
   PRODUCTS = 'PRODUCTS',
+  PRODUCT_DETAIL = 'PRODUCT_DETAIL',
   JOBS = 'JOBS',
   NEW_PRODUCT = 'NEW_PRODUCT',
   NEW_JOB = 'NEW_JOB',
@@ -26,7 +27,7 @@ export interface Product {
   name: string;
   price: number;
   description: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   category: string;
   createdAt: number;
 }
