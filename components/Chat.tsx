@@ -13,12 +13,29 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
   const [selectedChat, setSelectedChat] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageIds = useRef<{[key: string]: string}>({}); // Track last message for notifications
   
   // Mobile view state
   const [isMobileView, setIsMobileView] = useState(false);
   const [showList, setShowList] = useState(true);
 
+  const loadConversations = () => {
+    const chats = chatService.getConversations(user.id);
+    setConversations(chats);
+    // Initialize ref to prevent notification spam on load
+    chats.forEach(chat => {
+      if (chat.lastMessage) {
+        lastMessageIds.current[chat.id] = chat.lastMessage.id;
+      }
+    });
+  };
+
   useEffect(() => {
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     loadConversations();
     
     // Responsive check
@@ -37,7 +54,7 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
         selectChat(chat);
       }
     }
-  }, [initialChatId]); // Removed selectChat dependency to avoid loops
+  }, [initialChatId]);
 
   // Real-time polling effect
   useEffect(() => {
@@ -45,6 +62,34 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
       // 1. Check for conversation list updates
       const latestChats = chatService.getConversations(user.id);
       
+      // Check for new messages for notifications
+      latestChats.forEach(chat => {
+        const lastMsg = chat.lastMessage;
+        if (lastMsg) {
+          const prevId = lastMessageIds.current[chat.id];
+          if (prevId && prevId !== lastMsg.id) {
+             // New message detected
+             if (lastMsg.senderId !== user.id) {
+               const isActiveChat = selectedChat?.id === chat.id;
+               // Notify if tab hidden OR not the active chat
+               if (document.hidden || !isActiveChat) {
+                 const otherUser = chat.participants.find(p => p.id !== user.id);
+                 const senderName = otherUser ? otherUser.name : 'Someone';
+                 
+                 if (Notification.permission === 'granted') {
+                   new Notification(`New message from ${senderName}`, {
+                     body: lastMsg.text,
+                     icon: '/favicon.ico'
+                   });
+                 }
+               }
+             }
+          }
+          // Update ref
+          lastMessageIds.current[chat.id] = lastMsg.id;
+        }
+      });
+
       setConversations(prev => {
         if (JSON.stringify(prev) !== JSON.stringify(latestChats)) {
             return latestChats;
@@ -59,8 +104,10 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
              // Only update state if message count differs or ID matches but last message changed
              if (updatedChat.messages.length > selectedChat.messages.length) {
                  setSelectedChat(updatedChat);
-                 // If we are looking at it, mark new messages as read immediately
-                 chatService.markAsRead(updatedChat.id, user.id);
+                 // If we are looking at it and window is active, mark new messages as read immediately
+                 if (!document.hidden) {
+                    chatService.markAsRead(updatedChat.id, user.id);
+                 }
              }
         }
       }
@@ -72,11 +119,6 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
   useEffect(() => {
     scrollToBottom();
   }, [selectedChat?.messages]);
-
-  const loadConversations = () => {
-    const chats = chatService.getConversations(user.id);
-    setConversations(chats);
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -269,7 +311,7 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all outline-none"
+                  className="flex-1 px-4 py-3 bg-gray-50 text-gray-900 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all outline-none"
                 />
                 <button 
                   type="submit"
