@@ -48,11 +48,25 @@ export const Auth: React.FC<AuthProps> = ({ initialView, onLoginSuccess, onChang
     }
   };
 
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccessMsg('');
+
+    // Validation
+    if (authMethod === 'email') {
+      if (!validateEmail(formData.email)) {
+        setError('Please enter a valid email address.');
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       const identifier = authMethod === 'email' ? formData.email : formData.phone;
