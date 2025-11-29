@@ -465,12 +465,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
             </div>
 
             <div className="space-y-4 mt-auto pt-6 border-t border-gray-100">
-              <button 
-                onClick={handleContactClick}
-                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-gray-200 hover:shadow-xl hover:-translate-y-0.5"
-              >
-                <MessageCircle size={24} /> Contact Seller
-              </button>
               <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setIsCheckoutOpen(true)}
@@ -482,6 +476,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                     <Share2 size={22} /> Share
                   </button>
               </div>
+              <button 
+                onClick={handleContactClick}
+                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-gray-200 hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <MessageCircle size={24} /> Contact Seller
+              </button>
             </div>
             
             {product.seller && (
