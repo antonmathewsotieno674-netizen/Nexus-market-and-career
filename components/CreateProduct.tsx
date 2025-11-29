@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product, User } from '../types';
 import { generateProductDescription } from '../services/geminiService';
-import { Sparkles, Image as ImageIcon, Loader2, X, Plus } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Loader2, X, Plus, Trash2 } from 'lucide-react';
 
 interface CreateProductProps {
   onCancel: () => void;
@@ -60,6 +60,10 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
     const desc = await generateProductDescription(formData.name, formData.category);
     setFormData(prev => ({ ...prev, description: desc }));
     setGenerating(false);
+  };
+
+  const handleClearDescription = () => {
+    setFormData(prev => ({ ...prev, description: '' }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -180,15 +184,26 @@ export const CreateProduct: React.FC<CreateProductProps> = ({ onCancel, onSubmit
         <div className="space-y-2 relative">
           <div className="flex justify-between items-center">
              <label className="text-sm font-medium text-gray-700">Description</label>
-             <button 
-               type="button"
-               onClick={handleAIGenerate}
-               disabled={generating}
-               className="text-xs flex items-center gap-1.5 text-indigo-600 font-medium hover:text-indigo-700 disabled:opacity-50"
-             >
-                {generating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                {generating ? 'Generating...' : 'Auto-Write with AI'}
-             </button>
+             <div className="flex items-center gap-3">
+               {formData.description && (
+                 <button
+                   type="button"
+                   onClick={handleClearDescription}
+                   className="text-xs flex items-center gap-1 text-gray-400 hover:text-red-500 transition-colors"
+                 >
+                   <Trash2 size={12} /> Clear
+                 </button>
+               )}
+               <button 
+                 type="button"
+                 onClick={handleAIGenerate}
+                 disabled={generating}
+                 className="text-xs flex items-center gap-1.5 text-indigo-600 font-medium hover:text-indigo-700 disabled:opacity-50"
+               >
+                  {generating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  {generating ? 'Generating...' : 'Auto-Write with AI'}
+               </button>
+             </div>
           </div>
           <textarea 
             required

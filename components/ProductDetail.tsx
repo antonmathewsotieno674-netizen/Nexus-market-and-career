@@ -116,6 +116,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
     }
   };
 
+  const handleShare = () => {
+    alert("Sharing functionality is being implemented.");
+  };
+
   return (
     <div className="animate-fade-in space-y-6">
       {/* Lightbox Overlay */}
@@ -472,7 +476,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
                   >
                     <ShoppingCart size={22} /> Buy Now
                   </button>
-                  <button className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                  <button 
+                    onClick={handleShare}
+                    className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  >
                     <Share2 size={22} /> Share
                   </button>
               </div>
