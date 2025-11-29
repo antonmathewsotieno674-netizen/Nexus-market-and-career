@@ -280,9 +280,11 @@ const App: React.FC = () => {
             {currentView === ViewState.PRODUCT_DETAIL && selectedProduct && (
               <ProductDetail 
                 product={selectedProduct} 
+                products={products}
                 user={user}
                 onBack={() => setCurrentView(ViewState.PRODUCTS)}
                 onContactSeller={handleContactSeller}
+                onProductSelect={handleProductSelect}
               />
             )}
 

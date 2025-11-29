@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
 import { wishlistService } from '../services/wishlistService';
-import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X, Smartphone, CreditCard, Banknote, Globe, Loader2, CheckCircle, Landmark } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Share2, Heart, MessageCircle, Check, ZoomIn, X, Smartphone, CreditCard, Banknote, Globe, Loader2, CheckCircle, Landmark, Tag } from 'lucide-react';
 
 interface ProductDetailProps {
   product: Product;
+  products: Product[];
   user: User | null;
   onBack: () => void;
   onContactSeller?: (product: Product) => void;
+  onProductSelect: (product: Product) => void;
 }
 
 type PaymentMethod = 'MPESA' | 'CARD' | 'PAYPAL' | 'STRIPE' | 'BANK_TRANSFER' | 'CASH';
 
-export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onContactSeller }) => {
+export const ProductDetail: React.FC<ProductDetailProps> = ({ product, products, user, onBack, onContactSeller, onProductSelect }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
@@ -38,7 +40,13 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
     if (user) {
       setIsWishlisted(wishlistService.isInWishlist(user.id, product.id));
     }
+    // Reset image index when product changes
+    setActiveImageIndex(0);
   }, [user, product.id]);
+
+  const relatedProducts = products
+    .filter(p => p.category === product.category && p.id !== product.id)
+    .slice(0, 4);
 
   // Helper function to render text with bullet points cleanly
   const renderFormattedDescription = (text: string) => {
@@ -516,6 +524,37 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onB
           </div>
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="pt-8 border-t border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Related Products</h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide snap-x">
+            {relatedProducts.map(related => (
+              <div 
+                key={related.id}
+                onClick={() => {
+                   onProductSelect(related);
+                   window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="min-w-[200px] w-[200px] flex-shrink-0 cursor-pointer group snap-start"
+              >
+                <div className="aspect-square rounded-xl bg-gray-100 overflow-hidden mb-3 border border-gray-100">
+                  {related.imageUrls[0] ? (
+                    <img src={related.imageUrls[0]} alt={related.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Tag size={24} />
+                    </div>
+                  )}
+                </div>
+                <h3 className="font-bold text-gray-900 truncate text-sm">{related.name}</h3>
+                <p className="text-indigo-600 font-bold text-sm">KSh {related.price.toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
