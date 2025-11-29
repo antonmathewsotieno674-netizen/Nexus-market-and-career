@@ -34,11 +34,10 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
     if (initialChatId) {
       const chat = chatService.getConversation(initialChatId);
       if (chat) {
-        setSelectedChat(chat);
-        if (isMobileView) setShowList(false);
+        selectChat(chat);
       }
     }
-  }, [initialChatId, isMobileView]);
+  }, [initialChatId]); // Removed selectChat dependency to avoid loops
 
   // Real-time polling effect
   useEffect(() => {
@@ -47,8 +46,6 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
       const latestChats = chatService.getConversations(user.id);
       
       setConversations(prev => {
-        // Simple comparison to prevent unnecessary re-renders if data hasn't changed
-        // In a real app with large data, we might check timestamps specifically
         if (JSON.stringify(prev) !== JSON.stringify(latestChats)) {
             return latestChats;
         }
@@ -62,6 +59,8 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
              // Only update state if message count differs or ID matches but last message changed
              if (updatedChat.messages.length > selectedChat.messages.length) {
                  setSelectedChat(updatedChat);
+                 // If we are looking at it, mark new messages as read immediately
+                 chatService.markAsRead(updatedChat.id, user.id);
              }
         }
       }
@@ -100,8 +99,23 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
   };
 
   const selectChat = (chat: Conversation) => {
-    setSelectedChat(chat);
+    // Mark as read when selecting
+    const updatedChat = chatService.markAsRead(chat.id, user.id);
+    setSelectedChat(updatedChat || chat);
+    
+    // Update the conversation list locally to reflect read status immediately
+    setConversations(prev => prev.map(c => c.id === chat.id ? (updatedChat || c) : c));
+    
     if (isMobileView) setShowList(false);
+  };
+
+  // Helper to check for unread messages
+  const hasUnreadMessages = (chat: Conversation) => {
+    return chat.messages.some(m => !m.isRead && m.senderId !== user.id);
+  };
+
+  const getUnreadCount = (chat: Conversation) => {
+    return chat.messages.filter(m => !m.isRead && m.senderId !== user.id).length;
   };
 
   return (
@@ -126,22 +140,29 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
               {conversations.map(chat => {
                 const otherUser = getOtherParticipant(chat);
                 const isActive = selectedChat?.id === chat.id;
+                const isUnread = hasUnreadMessages(chat);
+                const unreadCount = getUnreadCount(chat);
                 
                 return (
                   <div 
                     key={chat.id}
                     onClick={() => selectChat(chat)}
-                    className={`p-4 cursor-pointer hover:bg-white transition-colors ${isActive ? 'bg-white border-l-4 border-indigo-600' : ''}`}
+                    className={`p-4 cursor-pointer hover:bg-white transition-colors relative ${isActive ? 'bg-white border-l-4 border-indigo-600' : ''}`}
                   >
                     <div className="flex gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
-                        {/* @ts-ignore - handling potential missing avatar */}
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0 relative">
+                        {/* @ts-ignore */}
                         {otherUser.avatar || otherUser.name.charAt(0)}
+                        {isUnread && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
+                        )}
                       </div>
                       <div className="overflow-hidden w-full">
                         <div className="flex justify-between items-baseline">
                            {/* @ts-ignore */}
-                          <h4 className="font-semibold text-gray-900 text-sm truncate">{otherUser.name}</h4>
+                          <h4 className={`text-sm truncate ${isUnread ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>
+                            {otherUser.name}
+                          </h4>
                           <span className="text-[10px] text-gray-400">
                             {new Date(chat.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </span>
@@ -149,9 +170,16 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
                         {chat.productName && (
                            <p className="text-xs text-indigo-500 font-medium truncate mb-0.5">{chat.productName}</p>
                         )}
-                        <p className={`text-sm truncate text-gray-500`}>
-                          {chat.lastMessage?.text || 'No messages yet'}
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className={`text-sm truncate ${isUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                            {chat.lastMessage?.text || 'No messages yet'}
+                          </p>
+                          {unreadCount > 0 && (
+                            <span className="ml-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -206,17 +234,26 @@ export const Chat: React.FC<ChatProps> = ({ user, initialChatId }) => {
 
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div 
-                      className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed ${
-                        isMe 
-                          ? 'bg-indigo-600 text-white rounded-br-none' 
-                          : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                      }`}
-                    >
-                      {msg.text}
-                      <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                    <div className="flex flex-col max-w-[75%]">
+                      <div 
+                        className={`px-4 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed ${
+                          isMe 
+                            ? 'bg-indigo-600 text-white rounded-br-none' 
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                      <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <p className="text-[10px] text-gray-400">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {isMe && (
+                           <span className={`text-[10px] ${msg.isRead ? 'text-blue-500' : 'text-gray-300'}`}>
+                             {msg.isRead ? 'Read' : 'Sent'}
+                           </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../types';
-import { Tag, Clock, Search, SlidersHorizontal, MoreHorizontal, Edit, Trash2, Layers, Star, X, Filter } from 'lucide-react';
+import { Product, User } from '../types';
+import { wishlistService } from '../services/wishlistService';
+import { Tag, Clock, Search, SlidersHorizontal, MoreHorizontal, Edit, Trash2, Layers, Star, X, Filter, Heart } from 'lucide-react';
 
 interface ProductListProps {
   products: Product[];
   onProductSelect?: (product: Product) => void;
+  user: User | null;
 }
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'rating';
 
-export const ProductList: React.FC<ProductListProps> = ({ products, onProductSelect }) => {
+export const ProductList: React.FC<ProductListProps> = ({ products, onProductSelect, user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   
@@ -21,6 +23,18 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onProductSel
   // Autocomplete State
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
+
+  // Wishlist State
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (user) {
+      const items = wishlistService.getWishlist(user.id);
+      setWishlist(new Set(items.map(p => p.id)));
+    } else {
+      setWishlist(new Set());
+    }
+  }, [user]);
 
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
@@ -69,6 +83,32 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onProductSel
     setSearchTerm(product.name);
     setShowSuggestions(false);
     if(onProductSelect) onProductSelect(product);
+  };
+
+  const toggleWishlist = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!user) {
+      alert("Please log in to manage your wishlist.");
+      return;
+    }
+
+    if (wishlist.has(product.id)) {
+      wishlistService.removeFromWishlist(user.id, product.id);
+      setWishlist(prev => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+    } else {
+      wishlistService.addToWishlist(user.id, product);
+      setWishlist(prev => {
+        const next = new Set(prev);
+        next.add(product.id);
+        return next;
+      });
+    }
   };
 
   return (
@@ -200,7 +240,19 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onProductSel
             >
               
               {/* Product Settings / Menu */}
-              <div className="absolute top-3 right-3 z-20">
+              <div className="absolute top-3 right-3 z-20 flex gap-2">
+                 {/* Wishlist Button */}
+                 <button 
+                  onClick={(e) => toggleWishlist(e, product)}
+                  className={`p-1.5 rounded-full backdrop-blur transition-colors shadow-sm ${
+                    wishlist.has(product.id)
+                      ? 'bg-red-50 text-red-500'
+                      : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:text-red-500 hover:bg-red-50'
+                  }`}
+                 >
+                   <Heart size={20} fill={wishlist.has(product.id) ? "currentColor" : "none"} />
+                 </button>
+
                  <button 
                   onClick={(e) => toggleMenu(product.id, e)}
                   className="p-1.5 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 shadow-sm"

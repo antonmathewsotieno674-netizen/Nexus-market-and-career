@@ -274,7 +274,7 @@ const App: React.FC = () => {
             )}
             
             {currentView === ViewState.PRODUCTS && (
-              <ProductList products={products} onProductSelect={handleProductSelect} />
+              <ProductList products={products} onProductSelect={handleProductSelect} user={user} />
             )}
 
             {currentView === ViewState.PRODUCT_DETAIL && selectedProduct && (

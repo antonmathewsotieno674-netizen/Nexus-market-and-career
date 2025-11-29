@@ -52,16 +52,6 @@ export const chatService = {
       updatedAt: Date.now()
     };
 
-    // If it's product related, add an initial system message or context
-    if (product) {
-      newChat.messages.push({
-        id: Date.now().toString(),
-        senderId: 'system',
-        text: `Inquiry regarding: ${product.name}`,
-        timestamp: Date.now()
-      });
-    }
-
     allChats.push(newChat);
     localStorage.setItem(CHATS_KEY, JSON.stringify(allChats));
     return newChat.id;
@@ -69,9 +59,7 @@ export const chatService = {
 
   sendMessage: (chatId: string, senderId: string, text: string): Conversation | null => {
     const stored = localStorage.getItem(CHATS_KEY);
-    if (!stored) return null;
-    
-    let allChats: Conversation[] = JSON.parse(stored);
+    const allChats: Conversation[] = JSON.parse(stored || '[]');
     const chatIndex = allChats.findIndex(c => c.id === chatId);
 
     if (chatIndex === -1) return null;
@@ -80,7 +68,8 @@ export const chatService = {
       id: Date.now().toString(),
       senderId,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isRead: false
     };
 
     allChats[chatIndex].messages.push(newMessage);
@@ -88,36 +77,36 @@ export const chatService = {
     allChats[chatIndex].updatedAt = Date.now();
 
     localStorage.setItem(CHATS_KEY, JSON.stringify(allChats));
+    return allChats[chatIndex];
+  },
 
-    // Simulate auto-reply for demo purposes (Simulated WebSocket event)
-    setTimeout(() => {
-        const currentStored = localStorage.getItem(CHATS_KEY);
-        if (!currentStored) return;
-        const currentChats: Conversation[] = JSON.parse(currentStored);
-        const currentChatIndex = currentChats.findIndex(c => c.id === chatId);
-        
-        if (currentChatIndex !== -1) {
-            const chat = currentChats[currentChatIndex];
-            // Identify the other participant
-            const otherParticipant = chat.participants.find(p => p.id !== senderId);
-            
-            if (otherParticipant) {
-                const replyMsg: Message = {
-                    id: Date.now().toString(),
-                    senderId: otherParticipant.id,
-                    text: `(Auto-reply) Thanks for your message! I'm interested in discussing this further.`,
-                    timestamp: Date.now()
-                };
-                
-                chat.messages.push(replyMsg);
-                chat.lastMessage = replyMsg;
-                chat.updatedAt = Date.now();
-                
-                localStorage.setItem(CHATS_KEY, JSON.stringify(currentChats));
-            }
-        }
-    }, 4000); // 4 seconds delay to simulate network/typing
+  markAsRead: (chatId: string, userId: string): Conversation | null => {
+    const stored = localStorage.getItem(CHATS_KEY);
+    const allChats: Conversation[] = JSON.parse(stored || '[]');
+    const chatIndex = allChats.findIndex(c => c.id === chatId);
 
+    if (chatIndex === -1) return null;
+
+    let hasUpdates = false;
+    const updatedMessages = allChats[chatIndex].messages.map(msg => {
+      // Mark messages as read if they weren't sent by the current user
+      if (msg.senderId !== userId && !msg.isRead) {
+        hasUpdates = true;
+        return { ...msg, isRead: true };
+      }
+      return msg;
+    });
+
+    if (hasUpdates) {
+      allChats[chatIndex].messages = updatedMessages;
+      // Also update lastMessage if needed
+      if (allChats[chatIndex].lastMessage && allChats[chatIndex].lastMessage.senderId !== userId) {
+         allChats[chatIndex].lastMessage.isRead = true;
+      }
+      localStorage.setItem(CHATS_KEY, JSON.stringify(allChats));
+      return allChats[chatIndex];
+    }
+    
     return allChats[chatIndex];
   }
 };

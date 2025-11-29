@@ -76,6 +76,7 @@ export interface Message {
   senderId: string;
   text: string;
   timestamp: number;
+  isRead?: boolean;
 }
 
 export interface Conversation {
